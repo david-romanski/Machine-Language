@@ -1,0 +1,49 @@
+Write an LC3 program which does the following:
+* Echo each character typed on the keyboard
+* Keep a count of each character entered
+* Do the above two steps until z is entered
+* On Z input halt program
+* Character count will be in R5
+
+01	START		ST		Rl,SaveRl		; Save registers needed
+02			ST		R2,SaveR2		; by this routine
+03			ST		R3,SaveR3
+04	;
+05			LD		R2 / Newline
+06	LI		LDI		R3,DSR
+07			BRzp		LI			; Loop until monitor is ready
+08			STI		R2,DDR		; Move cursor to new clean line
+09	;
+OA			LEA		Rl,Prompt		; Starting address of prompt string
+OB	Loop		LDR		R0,R1,#0		; Write the input prompt
+OC			BRz		Input			; End of prompt string
+OD	L2		LDI		R3,DSR
+OE			BRzp		L2			; Loop until monitor is ready
+OF			STI		R0,DDR		; Write next prompt character
+10			ADD		R1,R1,#1		; Increment prompt pointer
+11			BRnzp	Loop				; Get next prompt character
+12	;
+13	Input		LDI		R3,KBSR
+14			BRzp		Input			; Poll until a character is typed
+15			LDI		R0,KBDR		; Load input character into R0
+16 	L3		LDI		R3,DSR
+17			BRzp		L3			; Loop until monitor is ready
+18			STI		R0,DDR		; Echo input character
+19	;
+1A	L4		LDI		R3,DSR
+IB			BRzp		L4			; Loop until monitor is ready
+1C			STI		R2,DDR		; Move cursor to new clean line
+ID			LD		Rl,SaveRl		; Restore registers
+IE			LD		R2,SaveR2		; to original values
+IF			LD		R3,SaveR3
+20			BRnzp	NEXT_TASK			; Do the program's next task
+21	;
+22	SaveRl	.BKLW		1			; Memory for registers saved
+23	SaveR2	.BKLW		1
+24	SaveR3	.BKLW		1
+25	DSR		.FILL		XFE04
+26	DDR		.FILL		XFE06
+27	KBSR		.FILL		xFE00
+28	KBDR		.FILL		XFE02
+29	Newline	.FILL		x000A			; ASCII code for newline
+2A	Prompt	.STRINGZ ‘’Input a characters>’'
